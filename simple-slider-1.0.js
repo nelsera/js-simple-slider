@@ -13,6 +13,7 @@ var simpleSlider = function (element, options) {
         >
     ------------------------------------------- */
     var $w = window;
+    var $wSize;
 
     /* -------------------------------------------
         > Slider
@@ -21,6 +22,7 @@ var simpleSlider = function (element, options) {
         buttons(opts)
         containerSize(opts);
         childsReset(opts);
+        responsive(opts);
     }
 
     function buttons(opts) {
@@ -33,7 +35,7 @@ var simpleSlider = function (element, options) {
         for ( var i = 0; i < button.prev.length; i++ ) {
             button.prev[i].addEventListener('click', function (event) {
                 event.preventDefault();
-                movePrevItem(opts);
+                if ( $targetItem-1 >= 1 ) movePrevItem(opts);
             });
         }
 
@@ -41,9 +43,22 @@ var simpleSlider = function (element, options) {
         for ( var i = 0; i < button.next.length; i++ ) {
             button.next[i].addEventListener('click', function (event) {
                 event.preventDefault();
-                moveNextItem(opts);
+                if ( $targetItem+1 < $childs.length-1 ) moveNextItem(opts);
             });
         }
+    }
+    function movePrevItem (opts) {
+        $currentItem--;
+        $targetItem--;
+        var position = -opts.width * $currentItem;
+        // $el.style.left = move;
+        move($el, position, 'right');
+    }
+    function moveNextItem (opts) {
+        $currentItem++;
+        $targetItem++;
+        var position = -opts.width * $currentItem;
+        move($el, position, 'left');
     }
 
     function containerSize(opts) {
@@ -63,6 +78,8 @@ var simpleSlider = function (element, options) {
             $el.style.position = 'absolute';
             $el.style.left = $targetItem + 'px';
             $el.style.position = 0;
+            $el.style.margin = 0;
+            $el.style.padding = 0;
     }
 
     function childsReset(opts) {
@@ -78,14 +95,83 @@ var simpleSlider = function (element, options) {
         };
     }
 
-    function movePrevItem (opts) {
-        console.log('move prev');
+    function responsive(opts) {
+        if ( !opts.responsive ) return;
+        // images
+        var imgs = $el.querySelectorAll('img');
+        for (var i = 0; i < imgs.length; i++) {
+            imgs[i].style.width = '100%';
+            imgs[i].style['max-width'] = opts.width + 'px';
+        };
+        //
+
+        $w.onresize = function (opts) {
+            $wSize = window.innerWidth;
+
+            opts.width = $wSize + 'px';
+
+            $el.style.width = $wSize + 'px';
+
+            for (var i = 0; i < $childs.length; i++) {
+                $childs[i].style.height = opts.height + 'px';
+                $childs[i].style.width = $wSize + 'px';
+            };
+
+        }
     }
-    function moveNextItem (opts) {
-        $currentItem++;
-        var move = -opts.width * $currentItem + 'px';
-        $el.style.left = move;
-        console.log('move next', move);
+
+    /* -------------------------------------------
+        > Animate
+    ------------------------------------------- */
+    function move(elem, position, direction) {
+        var bottom  = 0;
+        var right   = 0;
+        var top     = 0;
+
+
+        switch ( direction ) {
+            case 'left':
+                moveLeft(elem, position);
+                break;
+            case 'right':
+                moveRight(elem, position);
+                break;
+            default:
+                return;
+                break;
+        }
+    }
+
+    function moveLeft(elem, position) {
+        var elem = elem;
+        var left = elem.style.left.split('px')[0];
+        var position = position;
+
+        function moveEl() {
+            left-=10;
+
+            elem.style.left = left + 'px';
+
+            if (left === position) clearInterval(id);
+        }
+
+        var id = setInterval(moveEl, 2);
+    }
+
+    function moveRight(elem, position) {
+        var elem = elem;
+        var left = elem.style.left.split('px')[0];
+        var position = position;
+
+        function moveEl() {
+            left = parseInt(left, 10) + 10;
+
+            elem.style.left = left + 'px';
+
+            if (left === position) clearInterval(id);
+        }
+
+        var id = setInterval(moveEl, 2);
     }
 
 
