@@ -38,6 +38,7 @@ var simpleSlider;
             $private.buttons(opts);
             $private.containerSize(opts);
             $private.childsReset(opts);
+            $private.responsive(opts);
         }
 
         $private.buttons = function (opts) {
@@ -50,7 +51,7 @@ var simpleSlider;
             for ( var i = 0; i < button.prev.length; i++ ) {
                 button.prev[i].addEventListener('click', function (event) {
                     event.preventDefault();
-                    $private.movePrevItem(opts);
+                    if ( $targetItem-1 >= 1 ) $private.movePrevItem(opts);
                 });
             }
 
@@ -58,9 +59,24 @@ var simpleSlider;
             for ( var i = 0; i < button.next.length; i++ ) {
                 button.next[i].addEventListener('click', function (event) {
                     event.preventDefault();
-                    $private.moveNextItem(opts);
+                    if ( $targetItem+1 < $childs.length-1 ) $private.moveNextItem(opts);
                 });
             }
+        }
+
+        $private.movePrevItem = function (opts) {
+            $currentItem--;
+            $targetItem--;
+            var position = -opts.width * $currentItem;
+            // $el.style.left = move;
+            $public.move($el, position, 'right');
+        }
+
+        $private.moveNextItem = function (opts) {
+            $currentItem++;
+            $targetItem++;
+            var position = -opts.width * $currentItem;
+            $public.move($el, position, 'left');
         }
 
         $private.containerSize = function (opts) {
@@ -80,6 +96,8 @@ var simpleSlider;
             $el.style.position = 'absolute';
             $el.style.left = $targetItem + 'px';
             $el.style.position = 0;
+            $el.style.margin = 0;
+            $el.style.padding = 0;
         }
 
         $private.childsReset = function (opts) {
@@ -95,17 +113,90 @@ var simpleSlider;
             };
         }
 
-        $private.movePrevItem = function (opts) {
-            console.log('move prev');
+        $private.responsive = function (opts) {
+            if ( !opts.responsive ) return;
+            // images
+            var imgs = $el.querySelectorAll('img');
+            for (var i = 0; i < imgs.length; i++) {
+                imgs[i].style.width = '100%';
+                imgs[i].style['max-width'] = opts.width + 'px';
+            };
+            //
+
+            $w.onresize = function (opts) {
+                $wSize = window.innerWidth;
+
+                opts.width = $wSize + 'px';
+
+                $el.style.width = $wSize + 'px';
+
+                for (var i = 0; i < $childs.length; i++) {
+                    $childs[i].style.height = opts.height + 'px';
+                    $childs[i].style.width = $wSize + 'px';
+                };
+
+            }
         }
 
-        $private.moveNextItem = function (opts) {
-            $currentItem++;
-            var move = -opts.width * $currentItem + 'px';
-            $el.style.left = move;
-            console.log('move next', move);
+
+    /* 
+        Animation
+       ========================================================================== */
+        $public.move = function (elem, position, direction) {
+            var bottom  = 0;
+            var right   = 0;
+            var top     = 0;
+
+
+            switch ( direction ) {
+                case 'left':
+                    $private.moveLeft(elem, position);
+                    break;
+                case 'right':
+                    $private.moveRight(elem, position);
+                    break;
+                default:
+                    return;
+                    break;
+            }
         }
 
+        $private.moveLeft = function (elem, position) {
+            var elem = elem;
+            var left = elem.style.left.split('px')[0];
+            var position = position;
+
+            function moveEl() {
+                left-=10;
+
+                elem.style.left = left + 'px';
+
+                if (left === position) clearInterval(id);
+            }
+
+            var id = setInterval(moveEl, 2);
+        }
+
+        $private.moveRight = function (elem, position) {
+            var elem = elem;
+            var left = elem.style.left.split('px')[0];
+            var position = position;
+
+            function moveEl() {
+                left = parseInt(left, 10) + 10;
+
+                elem.style.left = left + 'px';
+
+                if (left === position) clearInterval(id);
+            }
+
+            var id = setInterval(moveEl, 2);
+        }
+
+
+    /* 
+        Init
+       ========================================================================== */
         $public.init = function ($el) {
             $w.el = $el;
 
@@ -130,7 +221,6 @@ var simpleSlider;
         }
 
         return this;
-
     }
 
 /* 
@@ -139,3 +229,4 @@ var simpleSlider;
     simpleSlider.fn = SimpleSlider.prototype = {}
 
 }());
+
