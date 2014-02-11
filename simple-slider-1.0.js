@@ -229,3 +229,4 @@ var simpleSlider;
     simpleSlider.fn = SimpleSlider.prototype = {}
 
 }());
+
